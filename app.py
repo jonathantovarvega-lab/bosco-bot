@@ -31,7 +31,7 @@ Respuesta de Bosco:"""
     }
 
     try:
-        r = requests.post(url, headers=headers, json=payload, timeout=15)
+        r = requests.post(url, headers=headers, json=payload, timeout=45)
         data = r.json()
         
         if r.status_code == 200:
