@@ -20,7 +20,7 @@ Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos, y
 
 # Configuramos el modelo de IA
 modelo_ia = genai.GenerativeModel(
-    model_name='gemini-1.5-flash-latest',
+    model_name='gemini-1.5-pro',
     system_instruction=instrucciones_bosco
 )
 
