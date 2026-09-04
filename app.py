@@ -24,7 +24,7 @@ Respuesta de Bosco:"""
         return "Error: No se encontró la API Key de Gemini en Render."
 
     # Enlace directo al modelo más rápido sin usar librerías externas
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={gemini_key}"
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{"parts": [{"text": prompt_completo}]}]
