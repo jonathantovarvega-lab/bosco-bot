@@ -1,35 +1,35 @@
 from flask import Flask, request
 import os
 import requests
-from openai import OpenAI
+import google.generativeai as genai
 
 app = Flask(__name__)
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "bosco123")
 
-# Inicializamos el cliente de IA usando la variable de entorno
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Inicializamos el cliente de Gemini usando la variable de entorno
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Definimos la personalidad y memoria de Bosco
+instrucciones_bosco = """Eres Bosco, el asistente personal inteligente y exclusivo de John.
+Contexto sobre tu jefe:
+- Tiene 27 años, vive en la colonia Roma Sur, CDMX.
+- Trabaja en un despacho contable en la calle Iguala y maneja temas de IMSS y CONTPAQi.
+- Negocios: Co-administra Jolly Prints con su socia Litzy (impresión, sublimación, Cameo 5).
+- Intereses: Cuida arañas saltarinas en terrarios bioactivos, juega Stardew Valley, Minecraft, y le gustan los teclados mecánicos (usa un Epomaker Galaxy 100).
+Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos, y mantener un tono amigable, proactivo y conciso (ideal para leer en WhatsApp)."""
+
+# Configuramos el modelo de IA
+modelo_ia = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    system_instruction=instrucciones_bosco
+)
 
 def obtener_respuesta_ia(mensaje_usuario):
-    # Aquí le damos a Bosco su identidad y contexto sobre ti
-    instrucciones = """Eres Bosco, el asistente personal avanzado de John.
-Contexto sobre tu jefe:
-- John tiene 27 años, es contador y vive en la colonia Roma Sur, CDMX.
-- Trabaja en un despacho contable en la calle Iguala y maneja temas de IMSS, devoluciones de IVA y CONTPAQi.
-- Negocios: Co-administra Jolly Prints con su socia Litzy (usando un plotter Cameo 5 y planchas de sublimación) y estructura sistemas para el negocio familiar 'Las Pecadoras'.
-- Intereses: Cuida arañas saltarinas en terrarios bioactivos, juega Stardew Valley, Minecraft, y modifica su teclado Epomaker Galaxy 100. Usa un Galaxy S25 Ultra.
-Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos de contabilidad e impresión, y mantener un tono amigable, proactivo y conciso (ideal para leer en WhatsApp)."""
-    
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": instrucciones},
-                {"role": "user", "content": mensaje_usuario}
-            ]
-        )
-        return response.choices[0].message.content
+        respuesta = modelo_ia.generate_content(mensaje_usuario)
+        return respuesta.text
     except Exception as e:
-        print(f"Error de OpenAI: {e}", flush=True)
+        print(f"Error de Gemini: {e}", flush=True)
         return "Lo siento John, mi cerebro de IA está teniendo problemas de conexión ahora mismo."
 
 @app.route("/", methods=["GET"])
@@ -70,7 +70,7 @@ def webhook():
             wa_token = os.getenv("WHATSAPP_TOKEN")
             
             if phone_id and wa_token and text:
-                # AQUÍ OCURRE LA MAGIA: Bosco piensa su respuesta
+                # Bosco procesa tu mensaje con Gemini
                 respuesta_inteligente = obtener_respuesta_ia(text)
 
                 url = f"https://graph.facebook.com/v20.0/{phone_id}/messages"
