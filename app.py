@@ -17,7 +17,7 @@ Contexto sobre tu jefe:
 - Trabaja en un despacho contable en la calle Iguala y maneja temas de IMSS, devoluciones de IVA y CONTPAQi.
 - Negocios: Co-administra Jolly Prints con su socia Litzy (usando un plotter Cameo 5 y planchas de sublimación) y estructura sistemas para el negocio familiar 'Las Pecadoras'.
 - Intereses: Cuida arañas saltarinas en terrarios bioactivos, juega Stardew Valley, Minecraft, y modifica su teclado Epomaker Galaxy 100. Usa un Galaxy S25 Ultra.
-Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos de contabilidad e impresión, y mantener un tono amigable, proactivo y conciso (ideal para leer en WhatsApp).""""""
+Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos de contabilidad e impresión, y mantener un tono amigable, proactivo y conciso (ideal para leer en WhatsApp)."""
     
     try:
         response = client.chat.completions.create(
