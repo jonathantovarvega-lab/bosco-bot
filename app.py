@@ -6,31 +6,32 @@ import google.generativeai as genai
 app = Flask(__name__)
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "bosco123")
 
-# Inicializamos el cliente de Gemini usando la variable de entorno
+# Inicializamos el cliente de Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# Definimos la personalidad y memoria de Bosco
-instrucciones_bosco = """Eres Bosco, el asistente personal inteligente y exclusivo de John.
+# Usamos el modelo base universal que NUNCA da error 404
+modelo_ia = genai.GenerativeModel('gemini-pro')
+
+def obtener_respuesta_ia(mensaje_usuario):
+    # Inyectamos tu memoria directamente en el texto que lee la IA
+    prompt_completo = f"""Eres Bosco, el asistente personal inteligente y exclusivo de John.
 Contexto sobre tu jefe:
 - Tiene 27 años, vive en la colonia Roma Sur, CDMX.
 - Trabaja en un despacho contable en la calle Iguala y maneja temas de IMSS y CONTPAQi.
-- Negocios: Co-administra Jolly Prints con su socia Litzy (impresión, sublimación, Cameo 5).
+- Negocios: Co-administra Jolly Prints con su socia Litzy (impresión, sublimación, plotter Cameo 5).
 - Intereses: Cuida arañas saltarinas en terrarios bioactivos, juega Stardew Valley, Minecraft, y le gustan los teclados mecánicos (usa un Epomaker Galaxy 100).
-Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos, y mantener un tono amigable, proactivo y conciso (ideal para leer en WhatsApp)."""
+Tu objetivo: Responder dudas rápidamente, ayudarle a organizar sus proyectos, y mantener un tono amigable, proactivo y conciso (ideal para leer en WhatsApp).
 
-# Configuramos el modelo de IA
-modelo_ia = genai.GenerativeModel(
-    model_name='gemini-1.5-pro',
-    system_instruction=instrucciones_bosco
-)
+Mensaje de John: {mensaje_usuario}
 
-def obtener_respuesta_ia(mensaje_usuario):
+Respuesta de Bosco:"""
+
     try:
-        respuesta = modelo_ia.generate_content(mensaje_usuario)
+        respuesta = modelo_ia.generate_content(prompt_completo)
         return respuesta.text
     except Exception as e:
         print(f"Error de Gemini: {e}", flush=True)
-        return "Lo siento John, mi cerebro de IA está teniendo problemas de conexión ahora mismo."
+        return "Lo siento John, los cables de mi cerebro de IA se cruzaron un poco."
 
 @app.route("/", methods=["GET"])
 def home():
@@ -70,7 +71,7 @@ def webhook():
             wa_token = os.getenv("WHATSAPP_TOKEN")
             
             if phone_id and wa_token and text:
-                # Bosco procesa tu mensaje con Gemini
+                # Bosco procesa tu mensaje con la IA blindada
                 respuesta_inteligente = obtener_respuesta_ia(text)
 
                 url = f"https://graph.facebook.com/v20.0/{phone_id}/messages"
