@@ -1,6 +1,7 @@
 from flask import Flask, request
 import os
 import requests
+import time
 
 app = Flask(__name__)
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "bosco123")
@@ -42,10 +43,8 @@ def obtener_historial():
 
 # --- CEREBRO (GEMINI) ---
 def obtener_respuesta_ia(mensaje_usuario):
-    # 1. Bosco recuerda de qué estaban hablando
     historial = obtener_historial()
     
-    # 2. Construimos el pensamiento con tu contexto, el historial y tu nuevo mensaje
     prompt_completo = f"""Eres Bosco, el asistente personal inteligente y exclusivo de John.
 Contexto sobre tu jefe:
 - Tiene 27 años, vive en la colonia Roma Sur, CDMX.
@@ -68,24 +67,34 @@ Respuesta de Bosco:"""
         "contents": [{"parts": [{"text": prompt_completo}]}]
     }
 
-    try:
-        r = requests.post(url, headers=headers, json=payload, timeout=45)
-        data = r.json()
-        
-        if r.status_code == 200:
-            respuesta = data['candidates'][0]['content']['parts'][0]['text']
+    # SISTEMA DE REINTENTOS PARA EVITAR EL ERROR 503
+    max_intentos = 3
+    for intento in range(max_intentos):
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=25)
+            data = r.json()
             
-            # 3. Guardamos la plática actual en la memoria a largo plazo
-            guardar_mensaje("user", mensaje_usuario)
-            guardar_mensaje("assistant", respuesta)
+            if r.status_code == 200:
+                respuesta = data['candidates'][0]['content']['parts'][0]['text']
+                guardar_mensaje("user", mensaje_usuario)
+                guardar_mensaje("assistant", respuesta)
+                return respuesta
             
-            return respuesta
-        else:
-            print(f"Error REST Gemini: {data}", flush=True)
-            return "Lo siento John, mi cerebro tuvo un cortocircuito interno."
-    except Exception as e:
-        print(f"Excepción de red Gemini: {e}", flush=True)
-        return "Lo siento John, los servidores están lentos. Dame un minuto."
+            elif r.status_code in [503, 429]:
+                print(f"Intento {intento + 1} falló por tráfico (Error {r.status_code}). Reintentando...", flush=True)
+                time.sleep(2) # Pausa de 2 segundos antes de volver a golpear el servidor
+                continue
+            
+            else:
+                print(f"Error REST Gemini: {data}", flush=True)
+                return "Lo siento John, mi cerebro tuvo un cortocircuito interno."
+                
+        except Exception as e:
+            print(f"Excepción de red Gemini (Intento {intento + 1}): {e}", flush=True)
+            time.sleep(2)
+            continue
+            
+    return "Lo siento John, los servidores de Google están colapsados y, tras 3 intentos, sigo sin poder pasar. Dame unos minutos."
 
 # --- RUTAS DE FLASK ---
 @app.route("/", methods=["GET"])
